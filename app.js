@@ -193,16 +193,22 @@
 
   // ---------------------------------------------------------------- 跟讀（語音辨識）
   // 每一步都把狀態顯示在畫面上（手機上看不到主控台，出問題時要靠這些字判斷卡在哪一步）
-  var rec = null, recText = "", recInterim = "", recErr = "", recSteps = [];
-  function recStep(s) { recSteps.push(s); $("recDiag").textContent = "過程：" + recSteps.join(" → "); }
+  var rec = null, recText = "", recInterim = "", recErr = "", recSteps = [], recT0 = 0;
+  // 相容模式：有些 Android 手機開了「即時顯示辨識中的字」就什麼都不回傳。空手結束一次後自動改用相容模式。
+  var simpleMode = false;
+  try { simpleMode = localStorage.getItem("engTrainer.simpleRec") === "1"; } catch (e) { /* 無法儲存就每次重新判斷 */ }
+  function recStep(s) {
+    recSteps.push(s + "(" + ((Date.now() - recT0) / 1000).toFixed(1) + "秒)");
+    $("recDiag").textContent = "過程：" + recSteps.join(" → ") + (simpleMode ? "　［相容模式］" : "");
+  }
   function startRec() {
     if (!SR) { showEnvWarn(); return; }
     if (rec) { rec.stop(); return; }
     synth && synth.cancel();
     rec = new SR();
-    rec.lang = "en-US"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
-    recText = ""; recInterim = ""; recErr = ""; recSteps = [];
-    $("btnRec").textContent = "■ 說完了"; $("btnRec").className = "b rec";
+    rec.lang = "en-US"; rec.interimResults = !simpleMode; rec.continuous = false; rec.maxAlternatives = 1;
+    recText = ""; recInterim = ""; recErr = ""; recSteps = []; recT0 = Date.now();
+    $("btnRec").textContent = "■ 停止（說完會自動停）"; $("btnRec").className = "b rec";
     $("live").textContent = "準備麥克風……";
     recStep("啟動");
     rec.onstart = function () { recStep("麥克風已開啟"); $("live").textContent = "請說……"; };
@@ -237,7 +243,13 @@
       // 有些 Android 手機只給「暫定結果」、不給「最終結果」，這時就用最後一次的暫定結果
       var said = (recText || recInterim).trim();
       if (said) showResult(said);
-      else if (!recErr) $("live").textContent = "沒有辨識到任何字。請按「開始跟讀」後，等畫面出現「請說……」再開口。";
+      else if (!recErr && !simpleMode) {
+        simpleMode = true;
+        try { localStorage.setItem("engTrainer.simpleRec", "1"); } catch (e) { /* 略過 */ }
+        $("live").textContent = "沒有辨識到任何字。已自動改用「相容模式」，請再按一次「開始跟讀」試試看（說完不用按停止，停頓一下會自動結束）。";
+      } else if (!recErr) {
+        $("live").textContent = "相容模式也沒有辨識到字。請把下面「過程：」那一行截圖給我。";
+      }
     };
     try { rec.start(); } catch (e) { rec = null; recStep("無法啟動"); $("live").textContent = "無法啟動語音辨識：" + e.message; }
   }
