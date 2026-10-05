@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>英文聽說訓練</title>
+<style>
+:root {
+  --bg: #f6f5f1; --card: #ffffff; --ink: #1f2328; --muted: #6b6f76; --line: #e2e0da;
+  --accent: #2f5fd0; --accent-ink: #ffffff; --ok: #2e7d32; --bad: #c62828; --warn: #b26a00;
+  --bad-bg: #fdecec; --warn-bg: #fff4e0; --ok-bg: #e9f5ea; --chip: #eef1f8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --card: #1e2125; --ink: #e8e9eb; --muted: #9aa0a6; --line: #33373c;
+    --accent: #7aa2ff; --accent-ink: #0d1117; --ok: #7bc47f; --bad: #ff8a80; --warn: #ffb74d;
+    --bad-bg: #3a2222; --warn-bg: #3a2e1a; --ok-bg: #1f3322; --chip: #262b33;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", "Microsoft JhengHei", "Noto Sans TC", sans-serif; }
+header { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+.top { display: flex; align-items: baseline; justify-content: space-between; padding-top: 12px; }
+h1 { font-size: 18px; margin: 0; }
+.who { color: var(--muted); font-size: 13px; }
+nav { display: flex; gap: 4px; padding: 8px 0; overflow-x: auto; }
+nav button { flex: 1; min-width: 64px; border: 0; background: none; color: var(--muted); padding: 8px 4px;
+  font: inherit; font-weight: 600; border-bottom: 3px solid transparent; cursor: pointer; }
+nav button.on { color: var(--ink); border-bottom-color: var(--accent); }
+main { padding: 16px 0 48px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sp { flex: 1; }
+label.f { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+select, input[type=text], textarea { font: inherit; color: var(--ink); background: var(--card);
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+textarea { width: 100%; min-height: 76px; resize: vertical; font-size: 17px; }
+button.b { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  border-radius: 10px; padding: 10px 14px; cursor: pointer; min-height: 44px; }
+button.b.pri { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+button.b.rec { background: var(--bad); color: #fff; border-color: var(--bad); font-weight: 600; }
+button.b:disabled { opacity: .45; cursor: default; }
+.meta { font-size: 13px; color: var(--muted); }
+.badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--chip); color: var(--muted); }
+.big { font-size: 20px; line-height: 1.5; margin: 6px 0; }
+.zh { color: var(--muted); }
+.hidden { display: none !important; }
+.rate { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.rate input { width: 140px; }
+.diff { font-size: 19px; line-height: 2.1; }
+.w { padding: 2px 3px; border-radius: 4px; }
+.w.ok { color: var(--ink); }
+.w.miss { background: var(--bad-bg); color: var(--bad); text-decoration: underline wavy; }
+.w.sub { background: var(--bad-bg); color: var(--bad); }
+.w.sub small, .w.extra small { font-size: 12px; opacity: .85; }
+.w.extra { background: var(--warn-bg); color: var(--warn); text-decoration: line-through; }
+.legend { font-size: 13px; color: var(--muted); }
+.legend span { margin-right: 10px; }
+.score { font-size: 28px; font-weight: 700; }
+.score.good { color: var(--ok); } .score.mid { color: var(--warn); } .score.low { color: var(--bad); }
+.tip { border-left: 3px solid var(--accent); padding: 4px 10px; margin: 8px 0; font-size: 14px; }
+.tip b { color: var(--ink); }
+.live { min-height: 28px; font-size: 18px; color: var(--muted); font-style: italic; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+.bar { height: 8px; background: var(--chip); border-radius: 4px; overflow: hidden; min-width: 60px; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.stat { background: var(--chip); border-radius: 10px; padding: 10px 12px; }
+.stat .v { font-size: 22px; font-weight: 700; }
+.stat .k { font-size: 13px; color: var(--muted); }
+.warnbox { background: var(--warn-bg); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.ex { font-size: 13px; color: var(--muted); }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top"><h1>英文聽說訓練</h1><span class="who" id="who"></span></div>
+    <nav>
+      <button data-tab="dictation" class="on">聽寫</button>
+      <button data-tab="shadow">跟讀</button>
+      <button data-tab="progress">進度</button>
+      <button data-tab="settings">設定</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+  <div id="envWarn" class="warnbox hidden" style="margin-bottom:14px"></div>
+
+  <!-- 練習（聽寫、跟讀共用） -->
+  <section id="practice">
+    <div class="card">
+      <div class="row">
+        <label class="f">篇別
+          <select id="fSet"><option value="all">全部</option><option value="life">生活</option><option value="meeting">職場會議</option></select>
+        </label>
+        <label class="f">最難到
+          <select id="fLevel"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select> 級
+        </label>
+        <span class="sp"></span>
+        <span class="meta" id="queueInfo"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="badge" id="qBadge"></span>
+        <span class="badge" id="qWeak"></span>
+        <span class="sp"></span>
+        <span class="meta" id="qReplays"></span>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="b pri" id="btnPlay">▶ 播放</button>
+        <button class="b" id="btnSlow">慢速播放</button>
+        <div class="rate"><span>語速</span><input type="range" id="rate" min="0.5" max="1.4" step="0.05"><span id="rateV"></span></div>
+      </div>
+
+      <!-- 聽寫 -->
+      <div id="dictBox" style="margin-top:14px">
+        <textarea id="answer" placeholder="聽到什麼就打什麼，聽不出來的地方可以空著。按 Enter 送出（Shift+Enter 換行）" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="b pri" id="btnCheck">送出比對</button>
+          <button class="b" id="btnSkip">換一句</button>
+        </div>
+      </div>
+
+      <!-- 跟讀 -->
+      <div id="shadowBox" class="hidden" style="margin-top:14px">
+        <div class="row">
+          <button class="b" id="btnShow">顯示原句</button>
+          <span class="meta">建議先只用聽的跟著說，說不出來再看原句。</span>
+        </div>
+        <div id="shadowText" class="big hidden"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="b pri" id="btnRec">● 開始跟讀</button>
+          <button class="b" id="btnSkip2">換一句</button>
+        </div>
+        <div class="live" id="live"></div>
+      </div>
+    </div>
+
+    <div class="card hidden" id="result">
+      <div class="row"><span class="score" id="score"></span><span class="sp"></span>
+        <button class="b" id="btnReplayOrig">再聽一次</button>
+        <button class="b pri" id="btnNext">下一句</button></div>
+      <div class="diff" id="diff"></div>
+      <div class="legend"><span>紅底：漏掉或聽錯（小字是你的）</span><span>橘色刪除線：原句沒有的字</span></div>
+      <div class="big" id="resEn"></div>
+      <div class="zh" id="resZh"></div>
+      <div id="tips"></div>
+    </div>
+  </section>
+
+  <!-- 進度 -->
+  <section id="progress" class="hidden"></section>
+
+  <!-- 設定 -->
+  <section id="settings" class="hidden">
+    <div class="card">
+      <h3 style="margin-top:0">語音</h3>
+      <div class="row"><label class="f">朗讀聲音 <select id="voice"></select></label></div>
+      <p class="meta" id="voiceNote"></p>
+      <div class="row"><button class="b" id="btnTestVoice">試聽</button></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">學習者</h3>
+      <div class="row"><label class="f">名稱 <input type="text" id="pname" maxlength="20"></label><button class="b" id="btnSaveName">儲存</button></div>
+      <p class="meta">這份紀錄是獨立的「自我訓練」學習者檔案，只存在這個瀏覽器裡，不會和孩子的出卷程式混在一起。</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">備份與合併</h3>
+      <p class="meta">紀錄存在這個瀏覽器裡。清除瀏覽器資料會把紀錄刪掉，請定期匯出備份。手機和電腦的紀錄可以互相匯入：每一筆紀錄都有自己的編號和時間，匯入時是「合併」，不會覆蓋掉任何一邊。</p>
+      <div class="row">
+        <button class="b" id="btnExport">匯出備份檔</button>
+        <label class="b" style="display:inline-flex;align-items:center">匯入並合併<input type="file" id="fileImport" accept=".json,application/json" class="hidden"></label>
+      </div>
+      <p class="meta" id="ioMsg"></p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">清除全部紀錄</h3>
+      <p class="meta">會刪掉這個瀏覽器裡所有的練習紀錄，無法復原。建議先匯出備份。</p>
+      <div class="row"><button class="b" id="btnClear">清除紀錄…</button><button class="b rec hidden" id="btnClearYes">確定清除</button></div>
+    </div>
+    <div class="card meta">
+      <b>關於語音功能</b>：朗讀和語音辨識都是 Chrome 瀏覽器內建的功能，不需要安裝、不用付費。
+      語音辨識會把你的錄音送到 Google 的伺服器轉成文字，所以要有網路。
+      辨識只會告訴你「聽成哪些字」，不會替發音打分數；辨識也會自動往通順的句子猜，所以結果偏寬鬆。
+    </div>
+  </section>
+</main>
+<script src="sentences.js"></script>
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
