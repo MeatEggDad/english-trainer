@@ -115,6 +115,7 @@
     $("answer").value = "";
     $("live").textContent = "";
     $("recDiag").textContent = "";
+    $("voiceAnswer").value = "";
     $("shadowText").classList.add("hidden");
     $("btnShow").textContent = "顯示原句";
     if (!cur) { $("qBadge").textContent = "這個範圍沒有句子"; return; }
@@ -248,7 +249,7 @@
         try { localStorage.setItem("engTrainer.simpleRec", "1"); } catch (e) { /* 略過 */ }
         $("live").textContent = "沒有辨識到任何字。已自動改用「相容模式」，請再按一次「開始跟讀」試試看（說完不用按停止，停頓一下會自動結束）。";
       } else if (!recErr) {
-        $("live").textContent = "相容模式也沒有辨識到字。請把下面「過程：」那一行截圖給我。";
+        $("live").textContent = "這支手機的瀏覽器語音辨識沒有回應（常見於沒有 Google 服務的手機）。請改用下面「另一種跟讀方式」，用輸入法鍵盤的麥克風說。";
       }
     };
     try { rec.start(); } catch (e) { rec = null; recStep("無法啟動"); $("live").textContent = "無法啟動語音辨識：" + e.message; }
@@ -380,6 +381,14 @@
   });
   $("btnSkip").addEventListener("click", pickNext);
   $("btnSkip2").addEventListener("click", pickNext);
+  // 用輸入法的語音輸入跟讀（例如手機沒有 Google 語音辨識服務時）：比對方式和瀏覽器辨識完全一樣
+  $("btnVoiceCheck").addEventListener("click", function () {
+    var said = $("voiceAnswer").value.trim();
+    if (!cur || !said) { $("live").textContent = "請先用鍵盤的麥克風說出這一句。"; return; }
+    if (rec) rec.abort();
+    answered = false;
+    showResult(said);
+  });
   $("btnNext").addEventListener("click", function () {
     pickNext();
     if (practiceMode === "dictation") $("answer").focus();

@@ -142,6 +142,11 @@ a { color: var(--accent); }
         </div>
         <div class="live" id="live"></div>
         <div class="meta" id="recDiag"></div>
+        <div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px">
+          <div class="meta" style="margin-bottom:6px"><b>另一種跟讀方式（手機辨識不到時用）</b>：點下面的框，按輸入法鍵盤上的 🎤，用英文說出這一句，說完按「送出跟讀」。</div>
+          <textarea id="voiceAnswer" placeholder="點這裡 → 按鍵盤上的麥克風 → 說英文" autocomplete="off" autocapitalize="off" spellcheck="false" style="min-height:56px"></textarea>
+          <div class="row" style="margin-top:8px"><button class="b pri" id="btnVoiceCheck">送出跟讀</button></div>
+        </div>
       </div>
     </div>
 
