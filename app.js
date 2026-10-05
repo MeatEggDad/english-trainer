@@ -114,6 +114,7 @@
     $("result").classList.add("hidden");
     $("answer").value = "";
     $("live").textContent = "";
+    $("recDiag").textContent = "";
     $("shadowText").classList.add("hidden");
     $("btnShow").textContent = "顯示原句";
     if (!cur) { $("qBadge").textContent = "這個範圍沒有句子"; return; }
@@ -191,16 +192,22 @@
   }
 
   // ---------------------------------------------------------------- 跟讀（語音辨識）
-  var rec = null, recText = "";
+  // 每一步都把狀態顯示在畫面上（手機上看不到主控台，出問題時要靠這些字判斷卡在哪一步）
+  var rec = null, recText = "", recInterim = "", recErr = "", recSteps = [];
+  function recStep(s) { recSteps.push(s); $("recDiag").textContent = "過程：" + recSteps.join(" → "); }
   function startRec() {
     if (!SR) { showEnvWarn(); return; }
     if (rec) { rec.stop(); return; }
     synth && synth.cancel();
     rec = new SR();
     rec.lang = "en-US"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
-    recText = "";
-    $("btnRec").textContent = "■ 停止"; $("btnRec").className = "b rec";
-    $("live").textContent = "請說……";
+    recText = ""; recInterim = ""; recErr = ""; recSteps = [];
+    $("btnRec").textContent = "■ 說完了"; $("btnRec").className = "b rec";
+    $("live").textContent = "準備麥克風……";
+    recStep("啟動");
+    rec.onstart = function () { recStep("麥克風已開啟"); $("live").textContent = "請說……"; };
+    rec.onaudiostart = function () { recStep("收音中"); };
+    rec.onspeechstart = function () { recStep("聽到說話聲"); $("live").textContent = "聽到了，繼續說……"; };
     rec.onresult = function (ev) {
       var fin = "", interim = "";
       for (var k = 0; k < ev.results.length; k++) {
@@ -208,20 +215,31 @@
         else interim += ev.results[k][0].transcript;
       }
       recText = fin || recText;
+      if (interim) recInterim = interim;
+      if (recSteps[recSteps.length - 1] !== "有辨識結果") recStep("有辨識結果");
       $("live").textContent = (fin + " " + interim).trim();
     };
     rec.onerror = function (ev) {
-      var m = {"not-allowed": "麥克風沒有被允許使用。請在網址列左邊的圖示裡允許麥克風。",
-        "no-speech": "沒有聽到聲音，請再試一次。", "network": "語音辨識需要網路連線。",
-        "audio-capture": "找不到麥克風。"}[ev.error] || ("語音辨識發生錯誤：" + ev.error);
+      recErr = ev.error;
+      recStep("錯誤：" + ev.error);
+      var m = {"not-allowed": "麥克風沒有被允許使用。請按網址列左邊的圖示 → 權限 → 麥克風 → 允許，再重新整理網頁。",
+        "service-not-allowed": "這支手機的語音辨識服務沒有開啟。請確認已安裝並啟用「Google」App 或「Google 語音服務」（Speech Services by Google）。",
+        "language-not-supported": "語音辨識不支援英文（美國）。請在「Google 語音服務」的設定裡下載英文。",
+        "no-speech": "沒有聽到聲音。請靠近麥克風、說大聲一點，再試一次。", "network": "語音辨識需要網路連線。",
+        "audio-capture": "找不到麥克風，或麥克風正被其他 App 使用。", "aborted": "辨識被中斷了，請再按一次。"}[ev.error] ||
+        ("語音辨識發生錯誤：" + ev.error);
       $("live").textContent = m;
     };
     rec.onend = function () {
       rec = null;
+      recStep("結束");
       $("btnRec").textContent = "● 開始跟讀"; $("btnRec").className = "b pri";
-      if (recText.trim()) showResult(recText.trim());
+      // 有些 Android 手機只給「暫定結果」、不給「最終結果」，這時就用最後一次的暫定結果
+      var said = (recText || recInterim).trim();
+      if (said) showResult(said);
+      else if (!recErr) $("live").textContent = "沒有辨識到任何字。請按「開始跟讀」後，等畫面出現「請說……」再開口。";
     };
-    try { rec.start(); } catch (e) { rec = null; $("live").textContent = "無法啟動語音辨識：" + e.message; }
+    try { rec.start(); } catch (e) { rec = null; recStep("無法啟動"); $("live").textContent = "無法啟動語音辨識：" + e.message; }
   }
 
   // ---------------------------------------------------------------- 進度頁
